@@ -171,8 +171,8 @@ class Page(object):
         self.path = path
         self.url = url
         self._meta = OrderedDict()
+        # Generate the path to the history file for this page and create a new history object with it
         history_path = path.replace("\\" + url + ".md", "/history/" + url + ".json")
-        print(history_path)
         self.history = History(history_path, url)
         if not new:
             self.load()
@@ -248,7 +248,14 @@ class Page(object):
 
 
 class History(object):
+    """
+    This History object handles all aspects of a page's history
+    """
     def __init__(self, path, url):
+        """
+        :param path: The path to the history file.
+        :param url: The url of the page we want history for.
+        """
         self.url = url
         self.path = path
         if not os.path.exists(self.path):
@@ -258,11 +265,20 @@ class History(object):
             self.entryKeys = sorted(self.entries, reverse=True)
 
     def create(self):
+        """
+        Create the history file if it doesn't already exist.
+        """
         with open(self.path, 'w', encoding='utf-8') as hist:
             init = "{}\n"
             hist.write(init)
 
     def save(self, user, version):
+        """
+        Save the new edit to the history file.
+        :param user: The user who made the edit.
+        :param version: The timestamp of when this edit was made, denoting a new version
+        :return:
+        """
         with open(self.path, 'w') as hist:
             self.entries[datetime.datetime.now().timestamp()] = {
                 "user": user,

@@ -136,6 +136,11 @@ def search():
 @bp.route('/history/<path:url>/')
 @protect
 def history(url):
+    """
+    This route handles showing the pages history.
+    :param url: The url of the page for which you want the history of
+    :return: Show the history of the page
+    """
     page = current_wiki.get_or_404(url)
     return render_template('history.html', history=page.history, page=page)
 
@@ -143,6 +148,12 @@ def history(url):
 @bp.route('/history/<path:url>/<string:name>')
 @protect
 def history_user(url, name):
+    """
+    This route handles displaying the additions and subtractions to the page that a user made.
+    :param url: The url of the page that was edited
+    :param name: The name of the user who edited the page
+    :return: Show a page the highlights the differences between the current content and the previous content
+    """
     # get the page passed
     page = current_wiki.get_or_404(url)
 
