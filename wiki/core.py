@@ -151,6 +151,58 @@ class Processor(object):
             current = processor(current)
         self.final = current
 
+    def generate_contents_table(self, final):
+        """
+            Generates a table of contents for any page that uses level 1 headers
+        """
+        # Checks to see if there are any level 1 headers, after the markdown is converted
+        if final.count("<h1>"):
+            # Creates the necessary opening tags for our table of contents
+            table_html = \
+                "<div class=\"row\"><div class=\"span2\"><h3>Contents</h3><ul class='nav nav-tabs nav-stacked'>"
+
+            # gets arrays of all indicies in the file of the opening and closing h1 tags
+            header_open_loc = self.find_tags("<h1>", self.final)
+            header_close_loc = self.find_tags("</h1>", self.final)
+
+            # using the locations of the headers in the file, we can construct a table of contents
+            # after grabbing the name of a header, we add it to the table of contents as a list item
+            # we also add an anchor tag linked to the header further down on the page
+            for i in range(len(header_open_loc)):
+                header = final[header_open_loc[i] + 4:header_close_loc[i]]
+                header_f = header.lower()
+                header_f = header.replace(" ", "_")
+                header_f = "#" + header_f
+                table_html += "<li><a href=\"" + header_f + "\">" + header + "</a></li>"
+
+            # This is where we generate the anchor tags for the headers to be linked to by the table of contents
+            # It must be iterated backwards to not displace the html tags in reference to the indicies we already have
+            for i in range(len(header_open_loc)-1,-1, -1):
+                header = final[header_open_loc[i] + 4:header_close_loc[i]]
+                header_f = header.lower()
+                header_f = header.replace(" ", "_")
+                final = final[:header_open_loc[i]] + "<a name=\"" + header_f + "\"></a>" + \
+                    final[header_open_loc[i]:]
+
+            # close all of the opening tags created at the beginning of this method
+            # this completes all of the html that we need for the table of contents
+            table_html += "</ul><br></div></div>"
+
+            # add the table of contents to the final html conversion of the markdown for the page
+            final = table_html + final
+
+        return final
+
+    def find_tags(self, substr, given_string):
+        """
+            Looks for all occurrences of a substring in a given string and returns a list of the beginning index
+            of all occurrences
+        """
+        matches = re.finditer(substr, given_string)
+        matches_positions = [match.start() for match in matches]
+
+        return matches_positions
+
     def process(self):
         """
             Runs the full suite of processing on the given text, all
@@ -162,6 +214,8 @@ class Processor(object):
         self.split_raw()
         self.process_meta()
         self.process_post()
+
+        self.final = self.generate_contents_table(self.final)
 
         return self.final, self.markdown, self.meta
 
